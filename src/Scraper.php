@@ -13,7 +13,7 @@
  * @package Scrapeer
  */
 
-namespace Scrapeer;
+namespace TorrentPier;
 
 /**
  * The one and only class you'll ever need.

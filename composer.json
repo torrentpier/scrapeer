@@ -1,0 +1,42 @@
+{
+	"name": "torrentpier/scrapeer",
+	"description": "Essential PHP library that scrapes HTTP(S) and UDP trackers for torrent information.",
+	"type": "library",
+	"keywords": [
+		"bittorrent",
+		"forum",
+		"torrent",
+		"tracker"
+	],
+	"homepage": "https://torrentpier.com",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "medariox",
+			"role": "Developer"
+		},
+		{
+			"name": "belomaxorka",
+			"email": "roman25052006.kelesh@gmail.com",
+			"homepage": "https://github.com/belomaxorka",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": "^8.1"
+	},
+	"require-dev": {
+		"symfony/var-dumper": "^6.3"
+	},
+	"autoload": {
+		"psr-4": {
+			"TorrentPier\\": "src/"
+		}
+	},
+	"config": {
+		"sort-packages": true,
+		"optimize-autoloader": true
+	},
+	"minimum-stability": "stable",
+	"prefer-stable": true
+}
