@@ -25,7 +25,8 @@
 		}
 	],
 	"require": {
-		"php": "^8.1"
+		"php": "^8.1",
+		"ext-sockets": "*"
 	},
 	"require-dev": {
 		"symfony/var-dumper": "^6.3"
