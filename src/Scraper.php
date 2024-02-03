@@ -348,7 +348,7 @@ class Scraper
 
 				$torrents_data[$infohash] = $torrent_info;
 			} else {
-				$this->collect_infohash($infohash);
+				$this->collectInfoHash($infohash);
 				$this->errors[] = 'Invalid infohash (' . $infohash . ') for tracker: ' . $host . '.';
 			}
 		}
@@ -390,7 +390,7 @@ class Scraper
 	 */
 	private function scrape_udp($infohashes, $host, $port, $announce)
 	{
-		list($socket, $transaction_id, $connection_id) = $this->prepare_udp($host, $port);
+		list($socket, $transactionID, $connection_id) = $this->prepareUDP($host, $port);
 
 		if (true === $announce) {
 			$response = $this->udp_announce($socket, $infohashes, $connection_id);
@@ -399,14 +399,13 @@ class Scraper
 			$end = 16;
 			$offset = 20;
 		} else {
-			$response = $this->udp_scrape($socket, $infohashes, $connection_id, $transaction_id, $host, $port);
+			$response = $this->udp_scrape($socket, $infohashes, $connection_id, $transactionID, $host, $port);
 			$keys = 'Nseeders/Ncompleted/Nleechers';
 			$start = 8;
 			$end = $offset = 12;
 		}
-		$results = $this->udp_scrape_data($response, $infohashes, $host, $keys, $start, $end, $offset);
 
-		return $results;
+		return $this->udp_scrape_data($response, $infohashes, $host, $keys, $start, $end, $offset);
 	}
 
 	/**
@@ -414,24 +413,24 @@ class Scraper
 	 *
 	 * @param string $host Domain or IP address of the tracker.
 	 * @param int $port Optional. Port number of the tracker, Default 80.
+	 *
 	 * @return array Created socket, transaction ID and connection ID.
 	 */
-	private function prepare_udp($host, $port)
+	private function prepareUDP(string $host, int $port)
 	{
 		$socket = $this->udp_create_connection($host, $port);
-		$transaction_id = $this->udp_connection_request($socket);
-		$connection_id = $this->udp_connection_response($socket, $transaction_id, $host, $port);
+		$transactionID = $this->udp_connection_request($socket);
+		$connectionID = $this->udp_connection_response($socket, $transactionID, $host, $port);
 
-		return array($socket, $transaction_id, $connection_id);
+		return array($socket, $transactionID, $connectionID);
 	}
 
 	/**
 	 * Creates the UDP socket and establishes the connection
 	 *
-	 * @throws \Exception If the socket couldn't be created or connected to.
-	 *
 	 * @param string $host Domain or IP address of the tracker.
 	 * @param int $port Port number of the tracker, Default 80.
+	 *
 	 * @return resource $socket Created and connected socket.
 	 */
 	private function udp_create_connection($host, $port)
@@ -582,7 +581,7 @@ class Scraper
 	{
 		$action = pack('N', 1);
 		$downloaded = $left = $uploaded = "\x30\x30\x30\x30\x30\x30\x30\x30";
-		$peer_id = $this->random_peer_id();
+		$peer_id = $this->randomPeerID();
 		$event = pack('N', 3);
 		$ip_addr = pack('N', 0);
 		$key = pack('N', mt_rand(0, 2147483647));
@@ -591,8 +590,8 @@ class Scraper
 
 		$response_data = '';
 		foreach ($hashes as $infohash) {
-			$transaction_id = mt_rand(0, 2147483647);
-			$buffer = $connection_id . $action . pack('N', $transaction_id) . pack('H*', $infohash) .
+			$transactionID = mt_rand(0, 2147483647);
+			$buffer = $connection_id . $action . pack('N', $transactionID) . pack('H*', $infohash) .
 				$peer_id . $downloaded . $left . $uploaded . $event . $ip_addr . $key . $num_want . $ann_port;
 
 			if (false === @socket_write($socket, $buffer, strlen($buffer))) {
@@ -600,7 +599,7 @@ class Scraper
 				throw new \Exception("Couldn't write announce to socket.");
 			}
 
-			$response = $this->udp_verify_announce($socket, $transaction_id);
+			$response = $this->UDPVerifyAnnounce($socket, $transactionID);
 			if (false === $response) {
 				continue;
 			}
@@ -617,23 +616,23 @@ class Scraper
 	 *
 	 * @return string Generated peer ID.
 	 */
-	private function random_peer_id()
+	private function randomPeerID(): string
 	{
 		$identifier = '-SP0054-';
 		$chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-		$peer_id = $identifier . substr(str_shuffle($chars), 0, 12);
 
-		return $peer_id;
+		return $identifier . substr(str_shuffle($chars), 0, 12);
 	}
 
 	/**
 	 * Verifies the correctness of the announce response
 	 *
 	 * @param resource $socket The socket resource.
-	 * @param int $transaction_id The transaction ID.
+	 * @param int $transactionID The transaction ID.
+	 *
 	 * @return string Response data.
 	 */
-	private function udp_verify_announce($socket, $transaction_id)
+	private function UDPVerifyAnnounce($socket, int $transactionID)
 	{
 		if (false === ($response = @socket_read($socket, 20))) {
 			return false;
@@ -644,7 +643,7 @@ class Scraper
 		}
 
 		$result = unpack('Naction/Ntransaction_id', $response);
-		if (1 !== $result['action'] || $result['transaction_id'] !== $transaction_id) {
+		if (1 !== $result['action'] || $result['transaction_id'] !== $transactionID) {
 			return false;
 		}
 
@@ -661,22 +660,23 @@ class Scraper
 	 * @param int $start Start of the content we want to unpack.
 	 * @param int $end End of the content we want to unpack.
 	 * @param int $offset Offset to the next content part.
+	 *
 	 * @return array Scraped torrent data.
 	 */
 	private function udp_scrape_data($response, $hashes, $host, $keys, $start, $end, $offset)
 	{
 		$torrents_data = array();
 
-		foreach ($hashes as $infohash) {
+		foreach ($hashes as $infoHash) {
 			$byte_string = substr($response, $start, $end);
 			$data = unpack('N', $byte_string);
 			$content = $data[1];
 			if (!empty($content)) {
 				$results = unpack($keys, $byte_string);
-				$torrents_data[$infohash] = $results;
+				$torrents_data[$infoHash] = $results;
 			} else {
-				$this->collect_infohash($infohash);
-				$this->errors[] = 'Invalid infohash (' . $infohash . ') for tracker: ' . $host . '.';
+				$this->collectInfoHash($infoHash);
+				$this->errors[] = 'Invalid info-hash (' . $infoHash . ') for tracker: ' . $host . '.';
 			}
 			$start += $offset;
 		}
@@ -687,19 +687,19 @@ class Scraper
 	/**
 	 * Collects info-hashes that couldn't be scraped.
 	 *
-	 * @param string $infohash Infohash that wasn't scraped.
+	 * @param string $infoHash Info hash that wasn't scraped.
 	 */
-	private function collect_infohash($infohash)
+	private function collectInfoHash(string $infoHash): void
 	{
-		$this->infohashes[] = $infohash;
+		$this->infohashes[] = $infoHash;
 	}
 
 	/**
 	 * Checks if there are any errors
 	 *
-	 * @return bool True or false, depending if errors are present or not.
+	 * @return bool True or false, depending on if errors are present or not.
 	 */
-	public function has_errors()
+	public function hasErrors(): bool
 	{
 		return !empty($this->errors);
 	}
@@ -709,7 +709,7 @@ class Scraper
 	 *
 	 * @return array All the logged errors.
 	 */
-	public function get_errors()
+	public function getErrors(): array
 	{
 		return $this->errors;
 	}
