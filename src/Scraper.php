@@ -32,7 +32,7 @@ class Scraper
 	 *
 	 * @var array
 	 */
-	private $errors = array();
+	private array $errors = array();
 
 	/**
 	 * Array of infohashes to scrape
@@ -56,9 +56,8 @@ class Scraper
 	 * @param int|null $max_trackers Optional. Maximum number of trackers to be scraped, Default all.
 	 * @param int $timeout Optional. Maximum time for each tracker scrape in seconds, Default 2.
 	 * @param bool $announce Optional. Use announce instead of scrape, Default false.
-	 * @return array List of results.
-	 * @throws \RangeException In case of invalid amount of info-hashes.
 	 *
+	 * @return array List of results.
 	 */
 	public function scrape($hashes, $trackers, $max_trackers = null, $timeout = 2, $announce = false)
 	{
@@ -96,8 +95,8 @@ class Scraper
 					continue;
 				}
 
-				$port = isset($info['port']) ? $info['port'] : null;
-				$path = isset($info['path']) ? $info['path'] : null;
+				$port = $info['port'] ?? null;
+				$path = $info['path'] ?? null;
 				$passkey = $this->get_passkey($path);
 				$result = $this->try_scrape($protocol, $host, $port, $passkey, $announce);
 				$final_result = array_merge($final_result, $result);
@@ -105,44 +104,43 @@ class Scraper
 			}
 			break;
 		}
+
 		return $final_result;
 	}
 
 	/**
 	 * Normalizes the given hashes
 	 *
-	 * @param array $infohashes List of infohash(es).
-	 * @return array Normalized infohash(es).
-	 * @throws \RangeException If amount of valid infohashes > 64 or < 1.
+	 * @param array|string $infoHashes List of infohash(es).
 	 *
+	 * @return array Normalized infohash(es).
 	 */
-	private function normalize_infohashes($infohashes)
+	private function normalize_infohashes($infoHashes)
 	{
-		if (!is_array($infohashes)) {
-			$infohashes = array($infohashes);
+		if (!is_array($infoHashes)) {
+			$infoHashes = array($infoHashes);
 		}
 
-		foreach ($infohashes as $index => $infohash) {
+		foreach ($infoHashes as $index => $infohash) {
 			if (!preg_match('/^[a-f0-9]{40}$/i', $infohash)) {
-				$this->errors[] = 'Invalid infohash skipped (' . $infohash . ').';
-				unset($infohashes[$index]);
+				$this->errors[] = 'Invalid info hash skipped (' . $infohash . ').';
+				unset($infoHashes[$index]);
 			}
 		}
 
-		$total_infohashes = count($infohashes);
-		if ($total_infohashes > 64 || $total_infohashes < 1) {
-			throw new \RangeException('Invalid amount of valid infohashes (' . $total_infohashes . ').');
+		$totalInfoHashes = count($infoHashes);
+		if ($totalInfoHashes > 64 || $totalInfoHashes < 1) {
+			throw new \RangeException('Invalid amount of valid infohashes (' . $totalInfoHashes . ').');
 		}
 
-		$infohashes = array_values($infohashes);
-
-		return $infohashes;
+		return array_values($infoHashes);
 	}
 
 	/**
 	 * Returns the passkey found in the scrape request.
 	 *
 	 * @param string $path Path from the scrape request.
+	 *
 	 * @return string Passkey or empty string.
 	 */
 	private function get_passkey($path)
@@ -162,9 +160,8 @@ class Scraper
 	 * @param int $port Optional. Port number of the tracker.
 	 * @param string $passkey Optional. Passkey provided in the scrape request.
 	 * @param bool $announce Optional. Use announce instead of scrape, Default false.
-	 * @return array List of results.
-	 * @throws \Exception In case of unsupported protocol.
 	 *
+	 * @return array List of results.
 	 */
 	private function try_scrape($protocol, $host, $port, $passkey, $announce)
 	{
@@ -204,6 +201,7 @@ class Scraper
 	 * @param int $port Optional. Port number of the tracker, Default 80 (HTTP) or 443 (HTTPS).
 	 * @param string $passkey Optional. Passkey provided in the scrape request.
 	 * @param bool $announce Optional. Use announce instead of scrape, Default false.
+	 *
 	 * @return array List of results.
 	 */
 	private function scrape_http($infohashes, $protocol, $host, $port, $passkey, $announce)
@@ -227,6 +225,7 @@ class Scraper
 	 * @param string $host Domain or IP address of the tracker.
 	 * @param int $port Port number of the tracker, Default 80 (HTTP) or 443 (HTTPS).
 	 * @param string $passkey Optional. Passkey provided in the scrape request.
+	 *
 	 * @return string Request query.
 	 */
 	private function http_query($infohashes, $protocol, $host, $port, $passkey)
@@ -249,12 +248,10 @@ class Scraper
 	/**
 	 * Executes the query and returns the result
 	 *
-	 * @throws \Exception If the connection can't be established.
-	 * @throws \Exception If the response isn't valid.
-	 *
 	 * @param string $query The query that will be executed.
 	 * @param string $host Domain or IP address of the tracker.
 	 * @param int $port Port number of the tracker, Default 80 (HTTP) or 443 (HTTPS).
+	 *
 	 * @return string Request response.
 	 */
 	private function http_request($query, $host, $port)
@@ -269,7 +266,7 @@ class Scraper
 			throw new \Exception('Invalid scrape connection (' . $host . ':' . $port . ').');
 		}
 
-		if (substr($response, 0, 12) !== 'd5:filesd20:') {
+		if (!str_starts_with($response, 'd5:filesd20:')) {
 			throw new \Exception('Invalid scrape response (' . $host . ':' . $port . ').');
 		}
 
@@ -279,13 +276,12 @@ class Scraper
 	/**
 	 * Builds the query, sends the announce request and returns the data
 	 *
-	 * @throws \Exception If the connection can't be established.
-	 *
 	 * @param array|string $infohashes List (>1) or string of infohash(es).
 	 * @param string $protocol Protocol to use for the scraping.
 	 * @param string $host Domain or IP address of the tracker.
 	 * @param int $port Port number of the tracker, Default 80 (HTTP) or 443 (HTTPS).
 	 * @param string $passkey Optional. Passkey provided in the scrape request.
+	 *
 	 * @return string Request response.
 	 */
 	private function http_announce($infohashes, $protocol, $host, $port, $passkey)
@@ -297,23 +293,22 @@ class Scraper
 			),
 		));
 
-		$response_data = '';
+		$responseData = '';
 		foreach ($infohashes as $infohash) {
 			$query = $tracker_url . '/announce?info_hash=' . urlencode(pack('H*', $infohash));
 			if (false === ($response = @file_get_contents($query, false, $context))) {
 				throw new \Exception('Invalid announce connection (' . $host . ':' . $port . ').');
 			}
 
-			if (substr($response, 0, 12) !== 'd8:completei' ||
-				substr($response, 0, 46) === 'd8:completei0e10:downloadedi0e10:incompletei1e') {
+			if (!str_starts_with($response, 'd8:completei') || str_starts_with($response, 'd8:completei0e10:downloadedi0e10:incompletei1e')) {
 				continue;
 			}
 
 			$ben_hash = '20:' . pack('H*', $infohash) . 'd';
-			$response_data .= $ben_hash . $response;
+			$responseData .= $ben_hash . $response;
 		}
 
-		return $response_data;
+		return $responseData;
 	}
 
 	/**
@@ -322,6 +317,7 @@ class Scraper
 	 * @param string $response The response that will be parsed.
 	 * @param array $infohashes List of infohash(es).
 	 * @param string $host Domain or IP address of the tracker.
+	 *
 	 * @return array Parsed data.
 	 */
 	private function http_data($response, $infohashes, $host)
@@ -544,8 +540,6 @@ class Scraper
 	/**
 	 * Writes to the connected socket
 	 *
-	 * @throws \Exception If the socket couldn't be written to.
-	 *
 	 * @param resource $socket The socket resource.
 	 * @param array $hashes List (>1) or string of infohash(es).
 	 * @param string $connection_id The connection ID.
@@ -570,11 +564,10 @@ class Scraper
 	/**
 	 * Writes the announce to the connected socket
 	 *
-	 * @throws \Exception If the socket couldn't be written to.
-	 *
 	 * @param resource $socket The socket resource.
 	 * @param array $hashes List (>1) or string of infohash(es).
 	 * @param string $connection_id The connection ID.
+	 *
 	 * @return string Torrent(s) data.
 	 */
 	private function udp_announce($socket, $hashes, $connection_id)
@@ -588,7 +581,7 @@ class Scraper
 		$num_want = -1;
 		$ann_port = pack('N', mt_rand(0, 255));
 
-		$response_data = '';
+		$responseData = '';
 		foreach ($hashes as $infohash) {
 			$transactionID = mt_rand(0, 2147483647);
 			$buffer = $connection_id . $action . pack('N', $transactionID) . pack('H*', $infohash) .
@@ -604,11 +597,11 @@ class Scraper
 				continue;
 			}
 
-			$response_data .= $response;
+			$responseData .= $response;
 		}
 		socket_close($socket);
 
-		return $response_data;
+		return $responseData;
 	}
 
 	/**
