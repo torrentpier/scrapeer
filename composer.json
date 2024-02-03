@@ -3,10 +3,12 @@
 	"description": "Essential PHP library that scrapes HTTP(S) and UDP trackers for torrent information.",
 	"type": "library",
 	"keywords": [
-		"bittorrent",
-		"forum",
 		"torrent",
-		"tracker"
+		"torrents",
+		"scraper",
+		"torrent-scraper",
+		"torrent-scrap",
+		"torrent-scraping"
 	],
 	"homepage": "https://torrentpier.com",
 	"license": "MIT",
