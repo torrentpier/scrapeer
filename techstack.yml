@@ -1,0 +1,44 @@
+repo_name: torrentpier/scrapeer
+report_id: 21a1801c177219825b29e166d993a930
+version: 0.1
+repo_type: Public
+timestamp: '2024-06-18T07:41:31+00:00'
+requested_by: belomaxorka
+provider: github
+branch: main
+detected_tools_count: 3
+tools:
+- name: PHP
+  description: A popular general-purpose scripting language that is especially suited
+    to web development
+  website_url: http://www.php.net/
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Languages
+  image_url: https://img.stackshare.io/service/991/hwUcGZ41_400x400.jpg
+  detection_source_url: https://github.com/torrentpier/scrapeer
+  detection_source: Repo Metadata
+- name: Git
+  description: Fast, scalable, distributed revision control system
+  website_url: http://git-scm.com/
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Version Control System
+  image_url: https://img.stackshare.io/service/1046/git.png
+  detection_source_url: https://github.com/torrentpier/scrapeer
+  detection_source: Repo Metadata
+- name: symfony/var-dumper
+  description: Provides mechanisms for walking through any arbitrary PHP variable
+  package_url: https://packagist.org/symfony/var-dumper
+  version: '6.3'
+  open_source: false
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Package Managers
+  image_url: https://img.stackshare.io/package/packagist/image.png
+  detection_source_url: https://github.com/torrentpier/scrapeer/blob/main/composer.json
+  detection_source: composer.json
+  last_updated_by: Roman Kelesidis
+  last_updated_on: 2024-01-19 15:28:40.000000000 Z
